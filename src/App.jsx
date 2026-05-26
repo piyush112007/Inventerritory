@@ -49,18 +49,31 @@ export default function App() {
     <BrowserRouter>
       <div
         className={`min-h-screen transition-all duration-300 ${
-          darkMode ? "bg-[#0f172a] text-white" : "bg-gray-100 text-black"
+          darkMode
+            ? "bg-gradient-to-br from-[#0f172a] via-[#111827] to-[#1e293b] text-white"
+            : "bg-gray-100 text-black"
         }`}
       >
         <Routes>
           {/* DASHBOARD */}
           <Route
             path="/"
-            element={<Dashboard user={user} darkMode={darkMode} />}
+            element={
+              <Dashboard
+                user={user}
+                darkMode={darkMode}
+                setDarkMode={setDarkMode}
+              />
+            }
           />
 
           {/* REGISTER INVENTORY */}
-          <Route path="/register/:registerId" element={<RegisterPage />} />
+          <Route
+            path="/register/:registerId"
+            element={
+              <RegisterPage darkMode={darkMode} setDarkMode={setDarkMode} />
+            }
+          />
         </Routes>
       </div>
     </BrowserRouter>

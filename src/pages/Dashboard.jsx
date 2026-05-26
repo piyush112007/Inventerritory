@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 
 import { getRegisters, createRegister } from "../services/registerService";
-
+import { logoutUser } from "../services/authService";
 import { useNavigate } from "react-router-dom";
+import { Moon, Sun } from "lucide-react";
 
-export default function Dashboard({ user, darkMode }) {
+export default function Dashboard({ user, darkMode, setDarkMode }) {
   const [registers, setRegisters] = useState([]);
 
   const [registerName, setRegisterName] = useState("");
@@ -38,12 +39,43 @@ export default function Dashboard({ user, darkMode }) {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-6 max-w-7xl mx-auto">
       {/* HEADER */}
-      <div className="mb-10">
-        <h1 className="text-5xl font-black text-orange-600">Inventerritory</h1>
+      <div className="flex justify-between items-start mb-10">
+        <div>
+          <h1 className="text-5xl font-black text-orange-600">
+            InvenTerritory
+          </h1>
 
-        <p className="text-gray-400 mt-2">Welcome back, {user.displayName}</p>
+          <p
+            className={`mt-2 ${darkMode ? "text-slate-400" : "text-gray-500"}`}
+          >
+            Welcome back, {user.displayName}
+          </p>
+        </div>
+
+        {/* ACTIONS */}
+        <div className="flex gap-3">
+          {/* THEME TOGGLE */}
+          <button
+            onClick={() => setDarkMode(!darkMode)}
+            className="bg-orange-600 hover:bg-orange-700 w-14 h-14 rounded-2xl transition flex items-center justify-center shadow-lg"
+          >
+            {darkMode ? (
+              <Sun size={22} strokeWidth={2.5} />
+            ) : (
+              <Moon size={22} strokeWidth={2.5} />
+            )}
+          </button>
+
+          {/* LOGOUT */}
+          <button
+            onClick={logoutUser}
+            className="bg-red-500 hover:bg-red-600 px-5 py-3 rounded-2xl font-semibold transition"
+          >
+            Logout
+          </button>
+        </div>
       </div>
 
       {/* CREATE REGISTER */}
@@ -51,7 +83,7 @@ export default function Dashboard({ user, darkMode }) {
         onSubmit={handleCreateRegister}
         className={`p-6 rounded-3xl border mb-10 ${
           darkMode
-            ? "bg-slate-900 border-slate-700"
+            ? "bg-slate-900 border-slate-800"
             : "bg-white border-gray-200"
         }`}
       >
@@ -63,10 +95,10 @@ export default function Dashboard({ user, darkMode }) {
             placeholder="Register Name"
             value={registerName}
             onChange={(e) => setRegisterName(e.target.value)}
-            className={`flex-1 p-4 rounded-2xl border outline-none ${
+            className={`flex-1 p-4 rounded-2xl border outline-none transition ${
               darkMode
-                ? "bg-slate-800 border-slate-700"
-                : "bg-gray-100 border-gray-300"
+                ? "bg-slate-800 border-slate-700 text-white"
+                : "bg-gray-100 border-gray-300 text-black"
             }`}
           />
 
@@ -85,17 +117,23 @@ export default function Dashboard({ user, darkMode }) {
             <div
               key={register.id}
               onClick={() => navigate(`/register/${register.id}`)}
-              className={`p-6 rounded-3xl cursor-pointer border transition hover:scale-[1.02] ${
+              className={`p-6 rounded-3xl cursor-pointer border shadow-lg transition-all duration-300 hover:scale-[1.02] ${
                 darkMode
-                  ? "bg-slate-900 border-slate-700 hover:border-orange-600"
-                  : "bg-white border-gray-200"
+                  ? "bg-slate-900 border-slate-800 hover:border-orange-600"
+                  : "bg-white border-gray-200 hover:border-orange-400"
               }`}
             >
               <div className="w-14 h-14 rounded-2xl bg-orange-600 mb-4"></div>
 
               <h3 className="text-2xl font-bold">{register.name}</h3>
 
-              <p className="text-gray-400 mt-2">Inventory Register</p>
+              <p
+                className={`mt-2 text-sm ${
+                  darkMode ? "text-slate-400" : "text-gray-500"
+                }`}
+              >
+                Inventory Register
+              </p>
             </div>
           ))}
         </div>
