@@ -1,13 +1,23 @@
 import { useEffect, useState } from "react";
 
+import { auth } from "./firebase/config";
+
+import { loginWithGoogle, logoutUser } from "./services/authService";
+import LoginScreen from "./components/LoginScreen";
+
 import {
   getProducts,
   addProduct,
   deleteProduct,
 } from "./services/productService";
 
+import { onAuthStateChanged } from "firebase/auth";
+
 export default function App() {
+  const [user, setUser] = useState(null);
+
   const [products, setProducts] = useState([]);
+  const [darkMode, setDarkMode] = useState(true);
 
   const [search, setSearch] = useState("");
 
@@ -18,15 +28,24 @@ export default function App() {
     price: "",
   });
 
+  // AUTH STATE
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+
+      if (currentUser) {
+        fetchProducts(currentUser.uid);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   // FETCH PRODUCTS
-  const fetchProducts = async () => {
-    const data = await getProducts();
+  const fetchProducts = async (userId) => {
+    const data = await getProducts(userId);
     setProducts(data);
   };
-
-  useEffect(() => {
-    fetchProducts();
-  }, []);
 
   // HANDLE INPUT
   const handleChange = (e) => {
@@ -40,7 +59,7 @@ export default function App() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    await addProduct({
+    await addProduct(user.uid, {
       ...formData,
       quantity: Number(formData.quantity),
       price: Number(formData.price),
@@ -53,55 +72,104 @@ export default function App() {
       price: "",
     });
 
-    fetchProducts();
+    fetchProducts(user.uid);
   };
 
   // DELETE PRODUCT
   const handleDelete = async (id) => {
-    await deleteProduct(id);
-    fetchProducts();
+    await deleteProduct(user.uid, id);
+
+    fetchProducts(user.uid);
   };
+
+  // LOGIN SCREEN
+  if (!user) {
+    return (
+      <LoginScreen darkMode={darkMode} loginWithGoogle={loginWithGoogle} />
+    );
+  }
 
   // SEARCH FILTER
   const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(search.toLowerCase())
+    product.name.toLowerCase().includes(search.toLowerCase()),
   );
 
   // DASHBOARD STATS
   const totalProducts = products.length;
 
-  const lowStock = products.filter(
-    (product) => product.quantity < 5
-  ).length;
+  const lowStock = products.filter((product) => product.quantity < 5).length;
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div
+      className={`min-h-screen p-6 transition-all duration-300 ${
+        darkMode ? "bg-[#0f172a] text-white" : "bg-gray-100 text-black"
+      }`}
+    >
       {/* HEADER */}
-      <h1 className="text-4xl font-bold text-center mb-8">
-        Inventerritory
-      </h1>
+      <div className="flex justify-between items-center mb-10">
+        <div>
+          <h1 className="text-5xl font-extrabold text-orange-600">
+            Inventerritory
+          </h1>
+
+          <p className="mt-2 text-gray-400">Smart Inventory Management</p>
+        </div>
+
+        <div className="flex gap-3">
+          {/* THEME TOGGLE */}
+          <button
+            onClick={() => setDarkMode(!darkMode)}
+            className="bg-orange-600 hover:bg-orange-700 px-4 py-2 rounded-xl transition"
+          >
+            {darkMode ? "☀️" : "🌙"}
+          </button>
+
+          {/* LOGOUT */}
+          <button
+            onClick={logoutUser}
+            className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-xl transition"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
 
       {/* DASHBOARD */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto mb-8">
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold">Total Products</h2>
-          <p className="text-3xl font-bold mt-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mb-8">
+        <div
+          className={`p-6 rounded-2xl shadow-lg border ${
+            darkMode
+              ? "bg-slate-800 border-slate-700"
+              : "bg-white border-gray-200"
+          }`}
+        >
+          <h2 className="text-lg font-medium text-gray-400">Total Products</h2>
+
+          <p className="text-5xl font-bold mt-4 text-orange-600">
             {totalProducts}
           </p>
         </div>
+        <div
+          className={`p-6 rounded-2xl shadow-lg border ${
+            darkMode
+              ? "bg-slate-800 border-slate-700"
+              : "bg-white border-gray-200"
+          }`}
+        >
+          <h2 className="text-lg font-medium text-gray-400">Low Stock Items</h2>
 
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold">Low Stock Items</h2>
-          <p className="text-3xl font-bold mt-2 text-red-500">
-            {lowStock}
-          </p>
+          <p className="text-5xl font-bold mt-4 text-red-500">{lowStock}</p>
         </div>
       </div>
 
       {/* FORM */}
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-6 rounded-lg shadow-md max-w-4xl mx-auto mb-8"
+        className={`p-6 rounded-2xl shadow-lg border mb-8 ${
+          darkMode
+            ? "bg-slate-800 border-slate-700"
+            : "bg-white border-gray-200"
+        }`}
       >
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <input
@@ -110,7 +178,11 @@ export default function App() {
             placeholder="Product Name"
             value={formData.name}
             onChange={handleChange}
-            className="border p-3 rounded"
+            className={`p-3 rounded-xl outline-none border transition ${
+              darkMode
+                ? "bg-slate-900 border-slate-700 text-white"
+                : "bg-white border-gray-300 text-black"
+            }`}
             required
           />
 
@@ -120,7 +192,11 @@ export default function App() {
             placeholder="Category"
             value={formData.category}
             onChange={handleChange}
-            className="border p-3 rounded"
+            className={`p-3 rounded-xl outline-none border transition ${
+              darkMode
+                ? "bg-slate-900 border-slate-700 text-white"
+                : "bg-white border-gray-300 text-black"
+            }`}
             required
           />
 
@@ -130,7 +206,11 @@ export default function App() {
             placeholder="Quantity"
             value={formData.quantity}
             onChange={handleChange}
-            className="border p-3 rounded"
+            className={`p-3 rounded-xl outline-none border transition ${
+              darkMode
+                ? "bg-slate-900 border-slate-700 text-white"
+                : "bg-white border-gray-300 text-black"
+            }`}
             required
           />
 
@@ -140,34 +220,50 @@ export default function App() {
             placeholder="Price"
             value={formData.price}
             onChange={handleChange}
-            className="border p-3 rounded"
+            className={`p-3 rounded-xl outline-none border transition ${
+              darkMode
+                ? "bg-slate-900 border-slate-700 text-white"
+                : "bg-white border-gray-300 text-black"
+            }`}
             required
           />
         </div>
 
         <button
           type="submit"
-          className="mt-4 bg-black text-white px-6 py-3 rounded hover:bg-gray-800"
+          className="mt-4 bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-xl transition"
         >
           Add Product
         </button>
       </form>
 
       {/* SEARCH */}
-      <div className="max-w-4xl mx-auto mb-4">
+      <div
+        className={`w-full p-3 rounded-xl border outline-none ${
+          darkMode
+            ? "bg-slate-800 border-slate-700 text-white"
+            : "bg-white border-gray-700 text-black"
+        }`}
+      >
         <input
           type="text"
           placeholder="Search products..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full border p-3 rounded"
+          className="w-full border p-3 rounded "
         />
       </div>
 
       {/* TABLE */}
-      <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">
+      <div
+        className={`rounded-2xl overflow-hidden shadow-lg border my-6 ${
+          darkMode
+            ? "bg-slate-800 border-slate-700"
+            : "bg-white border-gray-200"
+        }`}
+      >
         <table className="w-full">
-          <thead className="bg-black text-white">
+          <thead className="bg-orange-600 text-white">
             <tr>
               <th className="p-4 text-left">Name</th>
               <th className="p-4 text-left">Category</th>
@@ -180,7 +276,12 @@ export default function App() {
 
           <tbody>
             {filteredProducts.map((product) => (
-              <tr key={product.id} className="border-b">
+              <tr
+                key={product.id}
+                className={`border-b transition hover:bg-orange-600/10 ${
+                  darkMode ? "border-slate-700" : "border-gray-200"
+                }`}
+              >
                 <td className="p-4">{product.name}</td>
 
                 <td className="p-4">{product.category}</td>
@@ -204,7 +305,7 @@ export default function App() {
                 <td className="p-4">
                   <button
                     onClick={() => handleDelete(product.id)}
-                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                    className="bg-red-500 text-white px-4 py-2 rounded"
                   >
                     Delete
                   </button>

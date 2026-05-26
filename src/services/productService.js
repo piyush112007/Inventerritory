@@ -8,10 +8,15 @@ import {
 
 import { db } from "../firebase/config";
 
-const productCollection = collection(db, "products");
-
 // GET PRODUCTS
-export const getProducts = async () => {
+export const getProducts = async (userId) => {
+  const productCollection = collection(
+    db,
+    "users",
+    userId,
+    "products"
+  );
+
   const data = await getDocs(productCollection);
 
   return data.docs.map((doc) => ({
@@ -21,13 +26,26 @@ export const getProducts = async () => {
 };
 
 // ADD PRODUCT
-export const addProduct = async (product) => {
+export const addProduct = async (userId, product) => {
+  const productCollection = collection(
+    db,
+    "users",
+    userId,
+    "products"
+  );
+
   await addDoc(productCollection, product);
 };
 
 // DELETE PRODUCT
-export const deleteProduct = async (id) => {
-  const productDoc = doc(db, "products", id);
+export const deleteProduct = async (userId, productId) => {
+  const productDoc = doc(
+    db,
+    "users",
+    userId,
+    "products",
+    productId
+  );
 
   await deleteDoc(productDoc);
 };
