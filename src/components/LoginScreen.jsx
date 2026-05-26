@@ -19,16 +19,19 @@ export default function LoginScreen({ darkMode, loginWithGoogle }) {
         }`}
       >
         {/* LOGO */}
-        <div className="flex justify-center mb-6">
-          <div className="w-16 h-16 rounded-2xl bg-orange-600 flex items-center justify-center shadow-lg">
-            <div className="w-6 h-6 bg-white rounded-md rotate-12"></div>
-          </div>
-        </div>
 
         {/* TITLE */}
-        <h1 className="text-5xl font-black text-center text-orange-600 tracking-tight">
-          Inventerritory
-        </h1>
+        <div className="flex flex-col items-center">
+          <img
+            src="/logo.png"
+            alt="Inventerritory Logo"
+            className="w-full h-45 mb-4 object-contain"
+          />
+
+          <h1 className="text-5xl font-black text-orange-600">
+            Inventerritory
+          </h1>
+        </div>
 
         {/* SUBTITLE */}
         <p className="text-center text-gray-400 mt-4 leading-relaxed text-sm">
