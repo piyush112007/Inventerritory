@@ -4,17 +4,20 @@ import {
   addDoc,
   deleteDoc,
   doc,
+  updateDoc,
 } from "firebase/firestore";
 
 import { db } from "../firebase/config";
 
 // GET PRODUCTS
-export const getProducts = async (userId) => {
+export const getProducts = async (userId, registerId) => {
   const productCollection = collection(
     db,
     "users",
     userId,
-    "products"
+    "registers",
+    registerId,
+    "products",
   );
 
   const data = await getDocs(productCollection);
@@ -26,26 +29,50 @@ export const getProducts = async (userId) => {
 };
 
 // ADD PRODUCT
-export const addProduct = async (userId, product) => {
+export const addProduct = async (userId, registerId, product) => {
   const productCollection = collection(
     db,
     "users",
     userId,
-    "products"
+    "registers",
+    registerId,
+    "products",
   );
 
   await addDoc(productCollection, product);
 };
 
 // DELETE PRODUCT
-export const deleteProduct = async (userId, productId) => {
+export const deleteProduct = async (userId, registerId, productId) => {
   const productDoc = doc(
     db,
     "users",
     userId,
+    "registers",
+    registerId,
     "products",
-    productId
+    productId,
   );
 
   await deleteDoc(productDoc);
+};
+
+// UPDATE PRODUCT
+export const updateProduct = async (
+  userId,
+  registerId,
+  productId,
+  updatedData,
+) => {
+  const productDoc = doc(
+    db,
+    "users",
+    userId,
+    "registers",
+    registerId,
+    "products",
+    productId,
+  );
+
+  await updateDoc(productDoc, updatedData);
 };
