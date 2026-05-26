@@ -269,7 +269,10 @@ darkMode
 
 ## Frontend
 Deployed on:
-### Vercel
+### Vercel 
+```bash
+https://inventerritory.vercel.app/        
+```
 
 ## Backend
 Powered by:
@@ -282,7 +285,7 @@ Powered by:
 ## Clone Repository
 
 ```bash
-git clone YOUR_GITHUB_LINK
+https://github.com/piyush112007/Inventerritory
 ```
 
 ---
